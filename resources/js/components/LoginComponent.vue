@@ -38,7 +38,7 @@
                         this.$router.push('/shows');
                     },
                     (error)=>{
-                        this.errors = JSON.parse(error.response.request.response).errors;
+                        //this.errors = JSON.parse(error.response.request.response).errors;
                     }
                 );
             }

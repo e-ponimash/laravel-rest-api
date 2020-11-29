@@ -1,7 +1,8 @@
+import auth_api from '../../api/auth';
+
 const state = {
     token: localStorage.getItem("user-token") || "",
     status: "",
-    hasLoadedOnce: false
 };
 
 const getters = {
@@ -12,15 +13,14 @@ const getters = {
 const actions = {
     auth_request: ({ commit, dispatch }, user) => {
         return new Promise((resolve, reject) => {
-            commit('AUTH_REQUEST');
-            axios({ url: "login", data: user, method: "POST" })
-                .then(resp => {
-                    commit('AUTH_SUCCESS', resp);
-                    resolve(resp);
+            auth_api.login(user.email, user.password)
+                .then(token => {
+                    commit('AUTH_SUCCESS', token);
+                    resolve();
                 })
                 .catch(err => {
                     commit('AUTH_ERROR', err);
-                    reject(err);
+                    reject();
                 });
         });
     },
@@ -38,22 +38,19 @@ const mutations = {
         delete axios.defaults.headers.common['Authorization'];
         state.token = "";
     },
-    AUTH_SUCCESS: (state, resp) => {
-        console.log("resp", resp)
-        let token = resp.data.data.api_token;
+    AUTH_SUCCESS: (state, token) => {
+        console.log("token", token);
         localStorage.setItem("user-token", token);
         axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 
         state.status = "success";
-        state.token = resp.token;
-        state.hasLoadedOnce = true;
+        state.token = token;
     },
     AUTH_REQUEST: state => {
         state.status = "loading";
     },
     AUTH_ERROR: state => {
         state.status = "error";
-        state.hasLoadedOnce = true;
     },
 };
 

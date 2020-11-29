@@ -53,7 +53,6 @@ const router = new VueRouter({
 Vue.router = router;
 
 AppComponent.router = Vue.router;
-//AppComponent.store = Vue.store;
 
 new Vue({
         store,

@@ -2057,8 +2057,7 @@ function _defineProperty(obj, key, value) { if (key in obj) { Object.definePrope
         password: password
       }).then(function (response) {
         _this.$router.push('/shows');
-      }, function (error) {
-        _this.errors = JSON.parse(error.response.request.response).errors;
+      }, function (error) {//this.errors = JSON.parse(error.response.request.response).errors;
       });
     }
   })
@@ -54802,6 +54801,41 @@ module.exports = function(module) {
 
 /***/ }),
 
+/***/ "./resources/js/api/auth.js":
+/*!**********************************!*\
+  !*** ./resources/js/api/auth.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! axios */ "./node_modules/axios/index.js");
+/* harmony import */ var axios__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(axios__WEBPACK_IMPORTED_MODULE_0__);
+
+var auth = {
+  login: function login(_login, password) {
+    return new Promise(function (success, failure) {
+      axios__WEBPACK_IMPORTED_MODULE_0__({
+        method: "POST",
+        url: "login",
+        data: {
+          'email': _login,
+          'password': password
+        }
+      }).then(function (resp) {
+        var token = resp.data.data.api_token;
+        success(token);
+      })["catch"](function (err) {
+        failure(err);
+      });
+    });
+  }
+};
+/* harmony default export */ __webpack_exports__["default"] = (auth);
+
+/***/ }),
+
 /***/ "./resources/js/app.js":
 /*!*****************************!*\
   !*** ./resources/js/app.js ***!
@@ -54906,8 +54940,7 @@ var router = new vue_router__WEBPACK_IMPORTED_MODULE_0__["default"]({
   }]
 });
 Vue.router = router;
-_components_AppComponent_vue__WEBPACK_IMPORTED_MODULE_8__["default"].router = Vue.router; //AppComponent.store = Vue.store;
-
+_components_AppComponent_vue__WEBPACK_IMPORTED_MODULE_8__["default"].router = Vue.router;
 new Vue({
   store: _store__WEBPACK_IMPORTED_MODULE_2__["default"],
   render: function render(h) {
@@ -55504,10 +55537,11 @@ vue__WEBPACK_IMPORTED_MODULE_0___default.a.use(vuex__WEBPACK_IMPORTED_MODULE_1__
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _api_auth__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../api/auth */ "./resources/js/api/auth.js");
+
 var state = {
   token: localStorage.getItem("user-token") || "",
-  status: "",
-  hasLoadedOnce: false
+  status: ""
 };
 var getters = {
   isAuthenticated: function isAuthenticated(state) {
@@ -55522,17 +55556,12 @@ var actions = {
     var commit = _ref.commit,
         dispatch = _ref.dispatch;
     return new Promise(function (resolve, reject) {
-      commit('AUTH_REQUEST');
-      axios({
-        url: "login",
-        data: user,
-        method: "POST"
-      }).then(function (resp) {
-        commit('AUTH_SUCCESS', resp);
-        resolve(resp);
+      _api_auth__WEBPACK_IMPORTED_MODULE_0__["default"].login(user.email, user.password).then(function (token) {
+        commit('AUTH_SUCCESS', token);
+        resolve();
       })["catch"](function (err) {
         commit('AUTH_ERROR', err);
-        reject(err);
+        reject();
       });
     });
   },
@@ -55550,21 +55579,18 @@ var mutations = {
     delete axios.defaults.headers.common['Authorization'];
     state.token = "";
   },
-  AUTH_SUCCESS: function AUTH_SUCCESS(state, resp) {
-    console.log("resp", resp);
-    var token = resp.data.data.api_token;
+  AUTH_SUCCESS: function AUTH_SUCCESS(state, token) {
+    console.log("token", token);
     localStorage.setItem("user-token", token);
     axios.defaults.headers.common['Authorization'] = "Bearer ".concat(token);
     state.status = "success";
-    state.token = resp.token;
-    state.hasLoadedOnce = true;
+    state.token = token;
   },
   AUTH_REQUEST: function AUTH_REQUEST(state) {
     state.status = "loading";
   },
   AUTH_ERROR: function AUTH_ERROR(state) {
     state.status = "error";
-    state.hasLoadedOnce = true;
   }
 };
 /* harmony default export */ __webpack_exports__["default"] = ({
